@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, Copy, ImagePlus, Lock, Save, Trophy, Upload } from "lucide-react";
+import { ArrowLeft, Check, Copy, ImagePlus, Lock, Save, Trash2, Trophy, Upload } from "lucide-react";
 import { INITIAL_TEAMS, GALLERY_ITEMS } from "../page";
 import { readSiteState, supabase, SUPABASE_SETUP_SQL, writeSiteState } from "../../lib/supabase";
 
@@ -19,8 +19,9 @@ const tabs = [
   ["scores", "1. Scores & medals"],
   ["teams", "2. Teams & logos"],
   ["events", "3. Sports & rules"],
-  ["design", "4. Branding & footer"],
-  ["supabase", "5. Supabase setup"],
+  ["gallery", "4. Gallery"],
+  ["design", "5. Branding & footer"],
+  ["supabase", "6. Supabase setup"],
 ];
 
 export default function AdminPage() {
@@ -69,6 +70,70 @@ export default function AdminPage() {
     updateTeam(teamId, { logo: data.publicUrl });
   };
 
+  const uploadGalleryImage = async (file) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Gallery images must be smaller than 5 MB.");
+      return;
+    }
+
+    let imageUrl;
+    if (supabase) {
+      const path = `gallery/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
+      const { error: uploadError } = await supabase.storage
+        .from("empreza-media")
+        .upload(path, file, { upsert: true });
+      if (uploadError) {
+        setError(uploadError.message);
+        return;
+      }
+      const { data } = supabase.storage.from("empreza-media").getPublicUrl(path);
+      imageUrl = data.publicUrl;
+    } else {
+      imageUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Could not read the selected image."));
+        reader.readAsDataURL(file);
+      }).catch((uploadError) => {
+        setError(uploadError.message);
+        return null;
+      });
+      if (!imageUrl) return;
+    }
+
+    setState((current) => ({
+      ...current,
+      gallery: [
+        ...current.gallery,
+        {
+          title: file.name.replace(/\.[^/.]+$/, ""),
+          category: "Gallery",
+          image: imageUrl,
+        },
+      ],
+    }));
+    setSaved("Image added - save changes");
+  };
+
+  const updateGalleryItem = (index, patch) => {
+    setState((current) => ({
+      ...current,
+      gallery: current.gallery.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item),
+    }));
+  };
+
+  const removeGalleryItem = (index) => {
+    setState((current) => ({
+      ...current,
+      gallery: current.gallery.filter((_, itemIndex) => itemIndex !== index),
+    }));
+  };
+
   const events = useMemo(() => state.teams.flatMap((team) => team.events.map((event, index) => ({ team, event, index }))), [state.teams]);
 
   if (!unlocked) return (
@@ -100,6 +165,7 @@ export default function AdminPage() {
           {tab === "scores" && state.teams.map((team) => <div key={team.id} className="grid gap-3 rounded-xl border border-white/10 bg-[#151515] p-4 md:grid-cols-[1fr_140px_120px_120px] md:items-center"><div className="font-bold">{team.name}<span className="ml-2 text-xs text-zinc-500">{team.short}</span></div><label className="text-xs text-zinc-400">Points<input type="number" value={team.score} onChange={(e) => updateTeam(team.id, { score: Math.max(0, Number(e.target.value)) })} className="mt-1 w-full rounded bg-black p-2 text-white" /></label><label className="text-xs text-zinc-400">Wins<input type="number" value={team.wins} onChange={(e) => updateTeam(team.id, { wins: Math.max(0, Number(e.target.value)) })} className="mt-1 w-full rounded bg-black p-2 text-white" /></label><div className="text-right text-[#E7B736]">{team.score} PTS</div></div>)}
           {tab === "teams" && state.teams.map((team) => <div key={team.id} className="grid gap-4 rounded-xl border border-white/10 bg-[#151515] p-4 md:grid-cols-[1fr_120px_1fr_80px] md:items-center"><input value={team.name} onChange={(e) => updateTeam(team.id, { name: e.target.value })} className="rounded bg-black p-2 font-bold text-white" /><div className="flex items-center gap-2"><input type="color" value={team.color} onChange={(e) => updateTeam(team.id, { color: e.target.value })} className="h-10 w-12 rounded bg-transparent" /><input value={team.color} onChange={(e) => updateTeam(team.id, { color: e.target.value })} className="w-24 rounded bg-black p-2 text-xs text-white" /></div><label className="flex items-center gap-2 rounded border border-dashed border-white/20 p-3 text-xs text-zinc-400"><ImagePlus className="h-4 w-4" />{typeof team.logo === "string" && (team.logo.startsWith("http") || team.logo.startsWith("/")) ? "Replace logo" : "Upload PNG logo"}<input type="file" accept="image/png,image/webp" onChange={(e) => uploadLogo(team.id, e.target.files?.[0])} className="hidden" /></label>{typeof team.logo === "string" && (team.logo.startsWith("http") || team.logo.startsWith("/")) ? <img src={team.logo} alt={`${team.name} logo`} className="h-14 w-14 rounded-xl border border-white/15 bg-black/50 object-contain p-1" /> : <span className="flex h-14 w-14 items-center justify-center rounded-xl border border-white/15 bg-black/50 text-3xl">{team.logo}</span>}</div>)}
           {tab === "events" && events.map(({ team, event, index }) => <div key={`${team.id}-${index}`} className="rounded-xl border border-white/10 bg-[#151515] p-4"><p className="mb-3 text-xs font-bold uppercase text-[#E7B736]">{team.name} • Event {index + 1}</p><div className="grid gap-3 md:grid-cols-2"><input value={event.name} onChange={(e) => { const events = [...team.events]; events[index] = { ...event, name: e.target.value }; updateTeam(team.id, { events }); }} className="rounded bg-black p-2 text-white" /><input value={event.time} onChange={(e) => { const events = [...team.events]; events[index] = { ...event, time: e.target.value }; updateTeam(team.id, { events }); }} className="rounded bg-black p-2 text-white" /><input value={event.venue} onChange={(e) => { const events = [...team.events]; events[index] = { ...event, venue: e.target.value }; updateTeam(team.id, { events }); }} className="rounded bg-black p-2 text-white" /><select value={event.status} onChange={(e) => { const events = [...team.events]; events[index] = { ...event, status: e.target.value }; updateTeam(team.id, { events }); }} className="rounded bg-black p-2 text-white"><option>LIVE</option><option>UPCOMING</option><option>COMPLETED</option></select><textarea value={event.rules.join("\n")} onChange={(e) => { const events = [...team.events]; events[index] = { ...event, rules: e.target.value.split("\n") }; updateTeam(team.id, { events }); }} className="min-h-24 rounded bg-black p-2 text-white md:col-span-2" placeholder="One rule per line" /></div></div>)}
+          {tab === "gallery" && <div className="space-y-4"><label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[#E7B736]/50 bg-[#151515] p-6 text-sm font-bold text-[#E7B736] hover:bg-[#E7B736]/10"><Upload className="h-5 w-5" /> Upload gallery image<input type="file" accept="image/*" onChange={(e) => uploadGalleryImage(e.target.files?.[0])} className="hidden" /></label><p className="text-xs text-zinc-500">Images must be smaller than 5 MB. Edit the title and category, then click Save changes.</p>{state.gallery.map((item, index) => <div key={`${item.image}-${index}`} className="grid gap-4 rounded-xl border border-white/10 bg-[#151515] p-4 md:grid-cols-[140px_1fr_auto] md:items-center"><img src={item.image} alt={item.title} className="h-24 w-full rounded-lg bg-black object-cover md:w-32" /><div className="grid gap-2"><input value={item.title} onChange={(e) => updateGalleryItem(index, { title: e.target.value })} className="rounded bg-black p-2 font-bold text-white" placeholder="Image title" /><input value={item.category} onChange={(e) => updateGalleryItem(index, { category: e.target.value })} className="rounded bg-black p-2 text-sm text-white" placeholder="Category" /></div><button type="button" onClick={() => removeGalleryItem(index)} className="rounded-lg p-2 text-zinc-500 hover:bg-red-500/10 hover:text-red-400" aria-label={`Remove ${item.title}`}><Trash2 className="h-5 w-5" /></button></div>)}</div>}
           {tab === "design" && <div className="space-y-4 rounded-xl border border-white/10 bg-[#151515] p-4"><label className="block text-xs text-zinc-400">Main EMPREZA PNG logo URL<input value={state.settings.mainLogo} onChange={(e) => setState({ ...state, settings: { ...state.settings, mainLogo: e.target.value } })} className="mt-1 w-full rounded bg-black p-2 text-white" /></label><img src={state.settings.mainLogo || "/empreza-logo.png"} alt="Current EMPREZA logo" className="h-36 w-36 rounded-xl bg-black object-contain p-2" /><label className="block text-xs text-zinc-400">ITUM social links<textarea value={state.settings.footerSocialLinks} onChange={(e) => setState({ ...state, settings: { ...state, footerSocialLinks: e.target.value } })} className="mt-1 min-h-24 w-full rounded bg-black p-2 text-white" /></label><label className="block text-xs text-zinc-400">Developer names<input value={state.settings.developerNames} onChange={(e) => setState({ ...state, settings: { ...state.settings, developerNames: e.target.value } })} className="mt-1 w-full rounded bg-black p-2 text-white" /></label><p className="text-xs text-zinc-500">Click any gallery image on the public site to open the interactive viewer.</p></div>}
           {tab === "supabase" && <div className="rounded-xl border border-white/10 bg-[#151515] p-4"><p className="mb-3 text-sm text-zinc-300">Run this once in the Supabase SQL Editor. It creates the state table and the <strong className="text-[#E7B736]">empreza-media</strong> bucket policies.</p><pre className="max-h-[28rem] overflow-auto rounded-lg bg-black p-4 text-xs text-emerald-300">{SUPABASE_SETUP_SQL}</pre><button onClick={() => { navigator.clipboard.writeText(SUPABASE_SETUP_SQL); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="mt-4 flex items-center gap-2 rounded-lg bg-[#E7B736] px-4 py-2 text-xs font-bold text-black">{copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} {copied ? "Copied" : "Copy SQL"}</button></div>}
         </section>

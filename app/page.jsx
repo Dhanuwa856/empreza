@@ -24,8 +24,25 @@ import {
   Image as ImageIcon,
   Info,
   RefreshCw,
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube,
+  Linkedin,
 } from "lucide-react";
 import { readSiteState, supabase, writeSiteState } from "../lib/supabase";
+
+const FOOTER_SOCIAL_LINKS = [
+  { label: "Facebook", href: "http://www.facebook.com/itum.mrt.ac.lk/", Icon: Facebook },
+  { label: "Instagram", href: "http://instagram.com/itum.mrt.ac.lk/", Icon: Instagram },
+  { label: "Twitter", href: "http://twitter.com/itumlk", Icon: Twitter },
+  { label: "YouTube", href: "https://www.youtube.com/channel/UCeGA6J0404xYDFMFnNkjZDg", Icon: Youtube },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/company/institute-of-technology-university-of-moratuwa/",
+    Icon: Linkedin,
+  },
+];
 
 export const INITIAL_TEAMS = [
   {
@@ -489,6 +506,7 @@ export default function EmprezaPage() {
   const [teams, setTeams] = useState(INITIAL_TEAMS);
   const [gallery, setGallery] = useState(GALLERY_ITEMS);
   const [siteSettings, setSiteSettings] = useState({ mainLogo: "/empreza-logo.png" });
+  const [isIntroVisible, setIsIntroVisible] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedGalleryIndex, setSelectedGalleryIndex] = useState(null);
@@ -500,6 +518,11 @@ export default function EmprezaPage() {
     "🔥 LIVE: Titan Vanguards take the lead after Futsal Semi-Finals (+35 PTS)! Next up: 100m Sprint Finals at 2:30 PM."
   );
   const [lastUpdated, setLastUpdated] = useState("Just now");
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsIntroVisible(false), 2200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Hero Carousel Auto-Slide
   useEffect(() => {
@@ -633,6 +656,18 @@ export default function EmprezaPage() {
 
   return (
     <div className="min-h-screen bg-[#0C0C0C] text-white">
+      {isIntroVisible && (
+        <div className="loading-intro" role="status" aria-label="Loading EMPREZA 2026">
+          <div className="loading-intro-content">
+            <div className="football-kick">
+              <span className="football-kick-ball" aria-hidden="true">⚽</span>
+              <span className="football-kick-shadow" aria-hidden="true" />
+            </div>
+            <img src={siteSettings.mainLogo || "/empreza-logo.png"} alt="EMPREZA logo" className="loading-intro-logo" />
+            <p className="loading-intro-label">Get ready to play</p>
+          </div>
+        </div>
+      )}
       {/* Sticky Top Navbar */}
       <header className="sticky top-0 z-40 border-b border-[#E7B736]/25 bg-[#0C0C0C]/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-1.5 sm:px-6">
@@ -1312,14 +1347,6 @@ export default function EmprezaPage() {
                         <MapPin className="h-3.5 w-3.5 text-[#E7B736]" />
                         {ev.venue}
                       </p>
-                      <p className="flex items-center gap-2">
-                        <Clock className="h-3.5 w-3.5 text-[#FF6B00]" />
-                        {ev.time}
-                      </p>
-                      <p className="flex items-center gap-2">
-                        <Users className="h-3.5 w-3.5 text-emerald-400" />
-                        Coordinator: {ev.coordinator}
-                      </p>
                     </div>
 
                     <div className="mt-4 border-t border-white/10 pt-3">
@@ -1494,12 +1521,26 @@ export default function EmprezaPage() {
       <footer className="border-t border-white/10 bg-[#080808] py-10 text-center text-xs text-zinc-500">
         <div className="mx-auto max-w-7xl px-4">
           <img src={siteSettings.mainLogo || "/empreza-logo.png"} alt="EMPREZA logo" className="mx-auto h-28 w-48 object-contain" />
-          <p className="mt-1">
-            Color Theme: Obsidian Black (#0C0C0C) • Amber Gold (#E7B736) • Sunset Orange (#FF6B00) • Pure White (#FFFFFF)
+          <div className="mt-5 flex justify-center gap-3">
+            {FOOTER_SOCIAL_LINKS.map(({ label, href, Icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Visit ITUM on ${label}`}
+                className="rounded-full border border-white/15 p-2.5 text-zinc-400 transition hover:border-[#E7B736] hover:text-[#E7B736]"
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+              </a>
+            ))}
+          </div>
+        
+        
+          <p className="mt-2 text-zinc-600">
+            © 2026 Institute of Technology, University of Moratuwa. All rights reserved.
           </p>
-          <a href="/admin" className="mt-5 inline-block text-[10px] uppercase tracking-[0.2em] text-zinc-700 transition hover:text-[#E7B736]">
-            Secret Admin Route (/admin)
-          </a>
+        
         </div>
       </footer>
     </div>
