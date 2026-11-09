@@ -29,6 +29,8 @@ import {
   Twitter,
   Youtube,
   Linkedin,
+  Menu,
+  X as CloseIcon,
 } from "lucide-react";
 import { readSiteState, supabase, writeSiteState } from "../lib/supabase";
 
@@ -507,6 +509,7 @@ export default function EmprezaPage() {
   const [gallery, setGallery] = useState(GALLERY_ITEMS);
   const [siteSettings, setSiteSettings] = useState({ mainLogo: "/empreza-logo.png" });
   const [isIntroVisible, setIsIntroVisible] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedGalleryIndex, setSelectedGalleryIndex] = useState(null);
@@ -698,28 +701,40 @@ export default function EmprezaPage() {
               <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
               LIVE SCORES
             </div>
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((open) => !open)}
+              className="rounded-lg border border-white/15 p-2 text-zinc-300 transition hover:border-[#E7B736] hover:text-[#E7B736] md:hidden"
+              aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={isMobileMenuOpen}
+            >
+              {isMobileMenuOpen ? <CloseIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
         </div>
+        {isMobileMenuOpen && (
+          <nav className="border-t border-white/10 px-4 py-3 md:hidden">
+            <div className="mx-auto flex max-w-7xl flex-col gap-1 text-sm font-medium text-zinc-300">
+              {[
+                ["leaderboard", "Leaderboard"],
+                ["teams", "10 Teams & 20 Sports"],
+                ["about", "About"],
+                ["history", "History"],
+                ["gallery", "Gallery"],
+              ].map(([href, label]) => (
+                <a
+                  key={href}
+                  href={`#${href}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="rounded-lg px-3 py-2 transition hover:bg-white/5 hover:text-[#E7B736]"
+                >
+                  {label}
+                </a>
+              ))}
+            </div>
+          </nav>
+        )}
       </header>
-
-      {/* Live Score Ticker */}
-      <div className="border-b border-white/10 bg-[#141414] py-2 overflow-hidden">
-        <div className="animate-marquee flex items-center gap-10 whitespace-nowrap text-xs font-semibold tracking-wide">
-          <span className="flex items-center gap-2 text-[#FF6B00]">
-            <Flame className="h-4 w-4" /> {announcement}
-          </span>
-          {sortedTeams.map((t, idx) => (
-            <span key={t.id} className="flex items-center gap-2 text-zinc-300">
-              <span className="font-bold text-[#E7B736]">#{idx + 1}</span>
-              <TeamLogo logo={t.logo} className="h-6 w-6 text-xl" />
-              <span className="font-semibold text-white">{t.name}</span>
-              <span className="rounded bg-white/10 px-2 py-0.5 text-[#E7B736]">
-                {t.score} PTS
-              </span>
-            </span>
-          ))}
-        </div>
-      </div>
 
       {/* Hero Image Carousel */}
       <section className="relative h-[540px] sm:h-[620px] w-full overflow-hidden border-b border-[#E7B736]/20">
@@ -793,35 +808,36 @@ export default function EmprezaPage() {
       </section>
 
       {/* Top 3 Podium & Full Real-Time Leaderboard */}
-      <section id="leaderboard" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+      <section id="leaderboard" className="mx-auto max-w-7xl px-3 py-12 sm:px-6 sm:py-16">
         <div className="flex flex-col items-start justify-between gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-end">
           <div>
             <span className="text-xs font-bold uppercase tracking-[0.25em] text-[#FF6B00]">
               REAL-TIME TOURNAMENT STANDINGS
             </span>
-            <h2 className="font-plak mt-1 text-3xl font-extrabold uppercase tracking-wide text-white sm:text-5xl">
-              CHAMPIONSHIP <span className="text-[#E7B736]">PODIUM & LEADERBOARD</span>
+            <h2 className="font-plak mt-2 max-w-3xl text-3xl font-extrabold uppercase leading-[0.95] tracking-wide text-white sm:text-5xl">
+              CHAMPIONSHIP <span className="text-[#E7B736]">PODIUM</span>
+              <span className="block text-[#E7B736] sm:inline"> & LEADERBOARD</span>
             </h2>
           </div>
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
+          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-zinc-400">
             <Clock className="h-4 w-4 text-[#E7B736]" />
             <span>Last Synced: {lastUpdated}</span>
           </div>
         </div>
 
         {/* Top 3 Spotlight Podium */}
-        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3 items-end">
+        <div className="podium-grid mt-10 grid grid-cols-1 gap-5 md:grid-cols-3 md:items-end">
           {/* 2nd Place */}
           {topThree[1] && (
-            <div className="order-2 md:order-1 relative rounded-2xl border border-zinc-400/40 bg-gradient-to-b from-zinc-800/60 to-[#121212] p-6 text-center shadow-xl">
-              <div className="mx-auto -mt-10 flex h-14 w-14 items-center justify-center rounded-full border-2 border-zinc-300 bg-[#0C0C0C] text-lg font-extrabold text-zinc-200 shadow-md">
+            <div className="podium-card podium-silver order-2 md:order-1 relative rounded-2xl border border-zinc-400/40 bg-gradient-to-b from-zinc-800/60 to-[#121212] p-5 text-center shadow-xl sm:p-6">
+              <div className="podium-rank mx-auto -mt-10 flex h-14 w-14 items-center justify-center rounded-full border-2 border-zinc-300 bg-[#0C0C0C] text-lg font-extrabold text-zinc-200 shadow-md">
                 #2
               </div>
               <TeamLogo logo={topThree[1].logo} className="mt-4 h-16 w-16 text-5xl" />
               <span className="mt-2 inline-block rounded bg-zinc-400/20 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-zinc-300">
                 SILVER CONTENDER
               </span>
-              <h3 className="font-plak mt-2 text-2xl font-bold uppercase text-white">
+              <h3 className="font-plak mt-2 break-words text-2xl font-bold uppercase text-white">
                 {topThree[1].name}
               </h3>
               <p className="mt-1 text-xs text-zinc-400">{topThree[1].tagline}</p>
@@ -842,15 +858,15 @@ export default function EmprezaPage() {
 
           {/* 1st Place Champion */}
           {topThree[0] && (
-            <div className="order-1 md:order-2 relative rounded-2xl border-2 border-[#E7B736] bg-gradient-to-b from-[#E7B736]/25 via-[#161616] to-[#0C0C0C] p-8 text-center shadow-2xl shadow-[#E7B736]/15 md:-translate-y-4">
-              <div className="mx-auto -mt-12 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#E7B736] bg-[#0C0C0C] text-xl font-extrabold text-[#E7B736] shadow-lg shadow-[#E7B736]/30">
+            <div className="podium-card podium-gold order-1 md:order-2 relative rounded-2xl border-2 border-[#E7B736] bg-gradient-to-b from-[#E7B736]/25 via-[#161616] to-[#0C0C0C] p-6 text-center shadow-2xl shadow-[#E7B736]/15 md:-translate-y-4 sm:p-8">
+              <div className="podium-rank mx-auto -mt-11 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#E7B736] bg-[#0C0C0C] text-xl font-extrabold text-[#E7B736] shadow-lg shadow-[#E7B736]/30">
                 👑 #1
               </div>
               <TeamLogo logo={topThree[0].logo} className="mt-4 h-20 w-20 text-6xl" />
               <span className="mt-3 inline-block rounded-full bg-[#E7B736] px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-widest text-black">
                 CURRENT ARENA LEADER
               </span>
-              <h3 className="font-plak mt-2 text-3xl font-extrabold uppercase text-[#E7B736]">
+              <h3 className="font-plak mt-2 break-words text-3xl font-extrabold uppercase text-[#E7B736]">
                 {topThree[0].name}
               </h3>
               <p className="mt-1 text-xs text-zinc-300">{topThree[0].tagline}</p>
@@ -871,15 +887,15 @@ export default function EmprezaPage() {
 
           {/* 3rd Place */}
           {topThree[2] && (
-            <div className="order-3 relative rounded-2xl border border-[#FF6B00]/50 bg-gradient-to-b from-[#FF6B00]/15 to-[#121212] p-6 text-center shadow-xl">
-              <div className="mx-auto -mt-10 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#FF6B00] bg-[#0C0C0C] text-lg font-extrabold text-[#FF6B00] shadow-md">
+            <div className="podium-card podium-bronze order-3 relative rounded-2xl border border-[#FF6B00]/50 bg-gradient-to-b from-[#FF6B00]/15 to-[#121212] p-5 text-center shadow-xl sm:p-6">
+              <div className="podium-rank mx-auto -mt-10 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#FF6B00] bg-[#0C0C0C] text-lg font-extrabold text-[#FF6B00] shadow-md">
                 #3
               </div>
               <TeamLogo logo={topThree[2].logo} className="mt-4 h-16 w-16 text-5xl" />
               <span className="mt-2 inline-block rounded bg-[#FF6B00]/20 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-[#FF6B00]">
                 BRONZE CHALLENGER
               </span>
-              <h3 className="font-plak mt-2 text-2xl font-bold uppercase text-white">
+              <h3 className="font-plak mt-2 break-words text-2xl font-bold uppercase text-white">
                 {topThree[2].name}
               </h3>
               <p className="mt-1 text-xs text-zinc-400">{topThree[2].tagline}</p>
@@ -900,7 +916,7 @@ export default function EmprezaPage() {
         </div>
 
         {/* All 10 Teams Standings Table */}
-        <div className="mt-12 overflow-hidden rounded-2xl border border-white/15 bg-[#121212]">
+        <div className="leaderboard-table mt-10 overflow-hidden rounded-2xl border border-white/15 bg-[#121212] sm:mt-12">
           <div className="grid grid-cols-12 border-b border-white/10 bg-[#191919] px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-zinc-400 sm:px-6">
             <div className="col-span-2 sm:col-span-1">Rank</div>
             <div className="col-span-6 sm:col-span-5">Team Franchise</div>

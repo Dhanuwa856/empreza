@@ -49,6 +49,50 @@ body {
   letter-spacing: -0.02em;
 }
 
+.podium-card {
+  isolation: isolate;
+  min-width: 0;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.podium-card:hover {
+  transform: translateY(-0.35rem);
+}
+
+.podium-gold {
+  box-shadow: 0 1.5rem 3rem -1.5rem rgba(231, 183, 54, 0.6);
+}
+
+.podium-silver {
+  box-shadow: 0 1.5rem 3rem -1.5rem rgba(212, 212, 216, 0.35);
+}
+
+.podium-bronze {
+  box-shadow: 0 1.5rem 3rem -1.5rem rgba(255, 107, 0, 0.4);
+}
+
+@media (max-width: 639px) {
+  .podium-card {
+    width: 100%;
+  }
+
+  .podium-gold {
+    order: 1;
+  }
+
+  .podium-silver {
+    order: 2;
+  }
+
+  .podium-bronze {
+    order: 3;
+  }
+
+  .leaderboard-table {
+    border-radius: 1rem;
+  }
+}
+
 @keyframes loadingIntroExit {
   0%, 75% { opacity: 1; visibility: visible; }
   100% { opacity: 0; visibility: hidden; }

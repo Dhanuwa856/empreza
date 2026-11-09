@@ -142,7 +142,7 @@ export default function AdminPage() {
         <Lock className="mx-auto h-10 w-10 text-[#E7B736]" />
         <h1 className="font-plak mt-4 text-3xl font-bold uppercase">Secret Admin Route</h1>
         <p className="mt-2 text-sm text-zinc-400">Manage EMPREZA content, scores, sports and media.</p>
-        <input autoFocus type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Demo password: empreza2026" className="mt-6 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-white outline-none focus:border-[#E7B736]" />
+        <input autoFocus type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-6 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-white outline-none focus:border-[#E7B736]" />
         {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
         <button className="mt-4 w-full rounded-lg bg-[#E7B736] py-3 font-bold uppercase tracking-wider text-black">Unlock dashboard</button>
         <a href="/" className="mt-5 inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white"><ArrowLeft className="h-4 w-4" /> Back to public site</a>
