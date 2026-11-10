@@ -458,73 +458,75 @@ export const GALLERY_ITEMS = [
     title: "",
     category: "2025 History",
     year: "2025",
-    image: "/gallery/2025/g02.jpg",
+    image: "https://feunrcibwemtfbgtmxzd.supabase.co/storage/v1/object/public/empreza-media/gallery/2025/optimized/g02.jpg",
   },
   {
     title: "",
     category: "2025 History",
     year: "2025",
-    image: "/gallery/2025/g03.jpg",
+    image: "https://feunrcibwemtfbgtmxzd.supabase.co/storage/v1/object/public/empreza-media/gallery/2025/optimized/g03.jpg",
   },
   {
     title: "",
     category: "2025 History",
     year: "2025",
-    image: "/gallery/2025/g04.jpg",
+    image: "https://feunrcibwemtfbgtmxzd.supabase.co/storage/v1/object/public/empreza-media/gallery/2025/optimized/g04.jpg",
   },
   {
     title: "",
     category: "2025 History",
     year: "2025",
-    image: "/gallery/2025/g05.jpg",
+    image: "https://feunrcibwemtfbgtmxzd.supabase.co/storage/v1/object/public/empreza-media/gallery/2025/optimized/g05.jpg",
   },
   {
     title: "",
     category: "2025 History",
     year: "2025",
-    image: "/gallery/2025/g06.jpg",
+    image: "https://feunrcibwemtfbgtmxzd.supabase.co/storage/v1/object/public/empreza-media/gallery/2025/optimized/g06.jpg",
   },
   {
     title: "",
     category: "2025 History",
     year: "2025",
-    image: "/gallery/2025/g07.jpg",
+    image: "https://feunrcibwemtfbgtmxzd.supabase.co/storage/v1/object/public/empreza-media/gallery/2025/optimized/g07.jpg",
   },
   {
     title: "",
     category: "2025 History",
     year: "2025",
-    image: "/gallery/2025/g08.jpg",
+    image: "https://feunrcibwemtfbgtmxzd.supabase.co/storage/v1/object/public/empreza-media/gallery/2025/optimized/g08.jpg",
   },
   {
     title: "",
     category: "2025 History",
     year: "2025",
-    image: "/gallery/2025/g09.jpg",
+    image: "https://feunrcibwemtfbgtmxzd.supabase.co/storage/v1/object/public/empreza-media/gallery/2025/optimized/g09.jpg",
   },
   {
     title: "",
     category: "2025 History",
     year: "2025",
-    image: "/gallery/2025/g10.jpg",
+    image: "https://feunrcibwemtfbgtmxzd.supabase.co/storage/v1/object/public/empreza-media/gallery/2025/optimized/g10.jpg",
   },
   {
     title: "",
     category: "2025 History",
     year: "2025",
-    image: "/gallery/2025/g11.jpg",
+    image: "https://feunrcibwemtfbgtmxzd.supabase.co/storage/v1/object/public/empreza-media/gallery/2025/optimized/g11.jpg",
   },
   {
     title: "",
     category: "2025 History",
     year: "2025",
-    image: "/gallery/2025/g12.jpg",
+    image: "https://feunrcibwemtfbgtmxzd.supabase.co/storage/v1/object/public/empreza-media/gallery/2025/optimized/g12.jpg",
   },
 ];
 
 export function mergeGalleryItems(items) {
   const savedItems = (Array.isArray(items) ? items : []).filter(
-    (item) => !item.image?.includes("images.unsplash.com")
+    (item) =>
+      !item.image?.includes("images.unsplash.com") &&
+      !item.image?.includes("/gallery/2025/")
   ).map((item) => (
     item.year === "2025" || item.image?.startsWith("/gallery/2025/")
       ? { ...item, title: "" }
@@ -1330,6 +1332,8 @@ export default function EmprezaPage() {
                   <img
                     src={item.image}
                     alt={item.title}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
@@ -1840,6 +1844,17 @@ export default function EmprezaPage() {
         
           <p className="mt-2 text-zinc-600">
             © 2026 Institute of Technology, University of Moratuwa. All rights reserved.
+          </p>
+          <p className="mt-3 text-zinc-600">
+            Developed by{" "}
+            <a
+              href="https://www.dhanushka.live/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-[#E7B736] transition hover:text-[#FF6B00]"
+            >
+              Dhanushka Rathnayaka
+            </a>
           </p>
         
         </div>
