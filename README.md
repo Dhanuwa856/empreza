@@ -47,3 +47,8 @@ Built with **Next.js 14**, **Tailwind CSS**, **Lucide Icons**, and **Firebase Fi
    ```
 
 <!-- Ben10game#10 -->
+
+<!-- ඉදිරියේ photos මේ නම්වලින් දමන්න:
+hero-01.jpg
+hero-02.jpg
+hero-03.jpg -->

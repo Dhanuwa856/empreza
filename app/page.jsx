@@ -427,20 +427,20 @@ const HERO_SLIDES = [
   {
     title: "UNLEASH THE GLORY AT EMPREZA 2026",
     subtitle: "UNIVERSITY SPORT MODULE CHAMPIONSHIP • 10 TEAMS • 20 ELITE EVENTS",
-    badge: "LIVE CHAMPIONSHIP FEED",
-    image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1800&q=80",
+    badge: "EMPREZA 2026",
+    image: "/gallery/2026/hero/hero-01.jpg",
   },
   {
     title: "WHERE CHAMPIONS ARE FORGED IN GOLD",
-    subtitle: "REAL-TIME SCOREBOARDS • HIGH-OCTANE ARENAS • ONE ULTIMATE TROPHY",
-    badge: "20 SPORTS IN ACTION",
-    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1800&q=80",
+    subtitle: "10 TEAMS • 20 EVENTS • ONE ULTIMATE TROPHY",
+    badge: "2026 CHAMPIONSHIP",
+    image: "/gallery/2026/hero/hero-02.jpg",
   },
   {
     title: "10 FRANCHISES. ONE OBSIDIAN THRONE.",
     subtitle: "CLICK ANY TEAM CARD BELOW TO EXPLORE HOSTED SPORTS & OFFICIAL RULES",
-    badge: "INTER-GROUP BATTLEGROUND",
-    image: "https://images.unsplash.com/photo-1526676037777-05a232554f77?auto=format&fit=crop&w=1800&q=80",
+    badge: "UPLOAD YOUR MOMENTS",
+    image: "/gallery/2026/hero/hero-03.jpg",
   },
 ];
 
@@ -785,13 +785,16 @@ export default function EmprezaPage() {
         {HERO_SLIDES.map((slide, index) => (
           <div
             key={index}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
+            className={`absolute inset-0 bg-[radial-gradient(circle_at_70%_35%,#3b2b0d,#0C0C0C_65%)] transition-opacity duration-1000 ${
               index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
             }`}
           >
             <img
               src={slide.image}
               alt={slide.title}
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+              }}
               className="h-full w-full object-cover object-center scale-105 transition-transform duration-1000"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0C] via-[#0C0C0C]/75 to-[#0C0C0C]/40" />
