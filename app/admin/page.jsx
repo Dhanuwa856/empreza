@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Check, Copy, ImagePlus, Lock, Save, Trash2, Trophy, Upload } from "lucide-react";
-import { INITIAL_TEAMS, GALLERY_ITEMS } from "../page";
+import { INITIAL_TEAMS, GALLERY_ITEMS, mergeGalleryItems } from "../page";
 import { readSiteState, supabase, SUPABASE_SETUP_SQL, writeSiteState } from "../../lib/supabase";
 
 const DEFAULT_STATE = {
@@ -36,10 +36,19 @@ export default function AdminPage() {
   useEffect(() => {
     const local = localStorage.getItem("empreza_2026_state");
     if (local) {
-      try { setState({ ...DEFAULT_STATE, ...JSON.parse(local) }); } catch { setError("Saved local data could not be loaded."); }
+      try {
+        const parsed = JSON.parse(local);
+        setState({ ...DEFAULT_STATE, ...parsed, gallery: mergeGalleryItems(parsed.gallery) });
+      } catch { setError("Saved local data could not be loaded."); }
     }
     readSiteState().then((remote) => {
-      if (remote?.state) setState({ ...DEFAULT_STATE, ...remote.state });
+      if (remote?.state) {
+        setState({
+          ...DEFAULT_STATE,
+          ...remote.state,
+          gallery: mergeGalleryItems(remote.state.gallery),
+        });
+      }
     }).catch(() => setError("Supabase is not configured; using local preview storage."));
   }, []);
 
@@ -109,12 +118,12 @@ export default function AdminPage() {
     setState((current) => ({
       ...current,
       gallery: [
-        ...current.gallery,
         {
           title: file.name.replace(/\.[^/.]+$/, ""),
           category: "Gallery",
           image: imageUrl,
         },
+        ...current.gallery,
       ],
     }));
     setSaved("Image added - save changes");

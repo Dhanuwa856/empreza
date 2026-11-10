@@ -446,63 +446,96 @@ const HERO_SLIDES = [
 
 const HISTORY_TIMELINE = [
   {
-    year: "2023",
-    title: "The Genesis of EMPREZA",
-    winner: "Solar Phoenix (Inaugural Champions)",
-    desc: "Launched under the University Sport Module with 6 pioneering teams and 8 outdoor sports, drawing over 1,200 student spectators.",
-  },
-  {
-    year: "2024",
-    title: "Expansion to Indoor & E-Sports",
-    winner: "Crimson Wolves",
-    desc: "Expanded to 8 franchises and introduced floodlit Futsal, Badminton, and Competitive E-Sports under a unified points table.",
-  },
-  {
     year: "2025",
-    title: "The Golden Arena Era",
-    winner: "Titan Vanguards",
-    desc: "Record-breaking turnout with 10 full teams and live digital scoring across university grounds.",
-  },
-  {
-    year: "2026",
-    title: "EMPREZA 2026: Obsidian & Gold Edition",
-    winner: "Battle In Progress...",
-    desc: "10 dynamic teams each organizing 2 flagship sporting events (20 total events) with real-time cloud leaderboard updates.",
+    title: "EMPREZA 2025: Leadership Through Experience",
+    winner: "Pathfinders (Champions)",
+    desc: "The third EMPREZA leadership event series was organized by Semester II students of the Textile, Chemical and Polymer, Civil Engineering Technology, and Maritime Studies Divisions on 24 October 2025 at the university premises. Conducted as the final project for the IS1205 Sports Studies module, the event developed teamwork, decision-making, communication, and strategic thinking through physical, intellectual, and team-based challenges. Code Champ was the 1st runner-up and Trailblazers was the 2nd runner-up.",
   },
 ];
 
 export const GALLERY_ITEMS = [
   {
-    title: "Floodlit Futsal Finals",
-    category: "Arena Action",
-    image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=900&q=80",
+    title: "",
+    category: "2025 History",
+    year: "2025",
+    image: "/gallery/2025/g02.jpg",
   },
   {
-    title: "100m Track Sprint Showdown",
-    category: "Athletics",
-    image: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=900&q=80",
+    title: "",
+    category: "2025 History",
+    year: "2025",
+    image: "/gallery/2025/g03.jpg",
   },
   {
-    title: "3x3 Street Basketball Dunk",
-    category: "Hardcourt",
-    image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=900&q=80",
+    title: "",
+    category: "2025 History",
+    year: "2025",
+    image: "/gallery/2025/g04.jpg",
   },
   {
-    title: "Championship Trophy Night",
-    category: "Ceremony",
-    image: "https://images.unsplash.com/photo-1569517282132-25d22f4573e6?auto=format&fit=crop&w=900&q=80",
+    title: "",
+    category: "2025 History",
+    year: "2025",
+    image: "/gallery/2025/g05.jpg",
   },
   {
-    title: "Power Volleyball Spike",
-    category: "Indoor Court",
-    image: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=900&q=80",
+    title: "",
+    category: "2025 History",
+    year: "2025",
+    image: "/gallery/2025/g06.jpg",
   },
   {
-    title: "Aquatic Center Sprint",
-    category: "Swimming",
-    image: "https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=900&q=80",
+    title: "",
+    category: "2025 History",
+    year: "2025",
+    image: "/gallery/2025/g07.jpg",
+  },
+  {
+    title: "",
+    category: "2025 History",
+    year: "2025",
+    image: "/gallery/2025/g08.jpg",
+  },
+  {
+    title: "",
+    category: "2025 History",
+    year: "2025",
+    image: "/gallery/2025/g09.jpg",
+  },
+  {
+    title: "",
+    category: "2025 History",
+    year: "2025",
+    image: "/gallery/2025/g10.jpg",
+  },
+  {
+    title: "",
+    category: "2025 History",
+    year: "2025",
+    image: "/gallery/2025/g11.jpg",
+  },
+  {
+    title: "",
+    category: "2025 History",
+    year: "2025",
+    image: "/gallery/2025/g12.jpg",
   },
 ];
+
+export function mergeGalleryItems(items) {
+  const savedItems = (Array.isArray(items) ? items : []).filter(
+    (item) => !item.image?.includes("images.unsplash.com")
+  ).map((item) => (
+    item.year === "2025" || item.image?.startsWith("/gallery/2025/")
+      ? { ...item, title: "" }
+      : item
+  ));
+  const savedImages = new Set(savedItems.map((item) => item.image));
+  const archiveItems = GALLERY_ITEMS.filter(
+    (item) => item.year === "2025" && !savedImages.has(item.image)
+  );
+  return [...archiveItems, ...savedItems];
+}
 
 export default function EmprezaPage() {
   const [teams, setTeams] = useState(INITIAL_TEAMS);
@@ -513,6 +546,7 @@ export default function EmprezaPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedGalleryIndex, setSelectedGalleryIndex] = useState(null);
+  const [galleryPage, setGalleryPage] = useState(1);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [adminPin, setAdminPin] = useState("");
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -521,6 +555,12 @@ export default function EmprezaPage() {
     "🔥 LIVE: Titan Vanguards take the lead after Futsal Semi-Finals (+35 PTS)! Next up: 100m Sprint Finals at 2:30 PM."
   );
   const [lastUpdated, setLastUpdated] = useState("Just now");
+  const galleryPageSize = 6;
+  const galleryPageCount = Math.max(1, Math.ceil(gallery.length / galleryPageSize));
+  const visibleGalleryItems = gallery.slice(
+    (galleryPage - 1) * galleryPageSize,
+    galleryPage * galleryPageSize
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => setIsIntroVisible(false), 2200);
@@ -552,6 +592,10 @@ export default function EmprezaPage() {
 
   // Load & Sync Scores (Supabase if configured, plus LocalStorage fallback)
   useEffect(() => {
+    if (galleryPage > galleryPageCount) setGalleryPage(galleryPageCount);
+  }, [galleryPage, galleryPageCount]);
+
+  useEffect(() => {
     if (window.location.hash === "#/admin") {
       window.location.replace("/admin");
       return;
@@ -564,7 +608,7 @@ export default function EmprezaPage() {
         const parsedState = JSON.parse(savedState);
         if (parsedState.teams) setTeams(parsedState.teams);
         if (parsedState.announcement) setAnnouncement(parsedState.announcement);
-        if (parsedState.gallery) setGallery(parsedState.gallery);
+        if (parsedState.gallery) setGallery(mergeGalleryItems(parsedState.gallery));
         if (parsedState.settings) setSiteSettings(parsedState.settings);
       } catch (e) {
         console.error("Could not load saved site state:", e);
@@ -584,7 +628,7 @@ export default function EmprezaPage() {
     readSiteState().then((remote) => {
       if (remote?.state?.teams) setTeams(remote.state.teams);
       if (remote?.state?.announcement) setAnnouncement(remote.state.announcement);
-      if (remote?.state?.gallery) setGallery(remote.state.gallery);
+      if (remote?.state?.gallery) setGallery(mergeGalleryItems(remote.state.gallery));
       if (remote?.state?.settings) setSiteSettings(remote.state.settings);
       if (remote?.updated_at) setLastUpdated(new Date(remote.updated_at).toLocaleTimeString());
     }).catch((err) => console.error("Supabase read error:", err));
@@ -1106,35 +1150,47 @@ export default function EmprezaPage() {
               THE SPIRIT OF <span className="text-[#E7B736]">EMPREZA</span>
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-zinc-300">
-              <strong>EMPREZA</strong> is our university&apos;s flagship Sports Module festival—engineered to
-              unite undergraduates through high-energy athletics, strategic leadership, and event
-              management. Unlike traditional tournaments, EMPREZA empowers <strong>10 student franchises</strong> to
-              both compete across the arena and organize <strong>2 official championship sports each</strong>.
+              The Semester II students of the Textile, Chemical and Polymer, Civil Engineering Technology,
+              and Maritime Studies Divisions of the Institute of Technology, University of Moratuwa
+              successfully organized the third edition of the EMPREZA leadership event series,
+              <strong> EMPREZA 2025</strong>, on 24 October 2025 at the university premises.
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-zinc-300">
+              Conducted as the final project for the IS1205 Sports Studies module, the event gave students
+              an opportunity to apply theoretical knowledge through experiential learning. Physical,
+              intellectual, and team-based challenges encouraged teamwork, decision-making, communication,
+              strategic thinking, creativity, and a spirit of unity and friendly rivalry.
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-zinc-300">
+              Team <strong>Pathfinders</strong> won the championship, followed by <strong>Code Champ</strong> as
+              the 1st runner-up and <strong>Trailblazers</strong> as the 2nd runner-up. The event was graced
+              by Dr. (Mrs.) M. C. W. Somarathne, Acting Director of ITUM, together with Heads of Divisions,
+              academic staff, and non-academic staff members.
             </p>
 
             <div className="mt-8 grid grid-cols-2 gap-4">
               <div className="rounded-xl border border-[#E7B736]/30 bg-[#141414] p-4">
                 <p className="font-plak text-3xl font-extrabold text-[#E7B736]">10</p>
                 <p className="mt-1 text-xs uppercase tracking-wider text-zinc-400">
-                  Franchise Teams
+                  Teams
                 </p>
               </div>
               <div className="rounded-xl border border-[#FF6B00]/30 bg-[#141414] p-4">
                 <p className="font-plak text-3xl font-extrabold text-[#FF6B00]">20</p>
                 <p className="mt-1 text-xs uppercase tracking-wider text-zinc-400">
-                  Official Sports Events
+                  Events
                 </p>
               </div>
               <div className="rounded-xl border border-white/15 bg-[#141414] p-4">
-                <p className="font-plak text-3xl font-extrabold text-white">500+</p>
+                <p className="font-plak text-3xl font-extrabold text-white">4</p>
                 <p className="mt-1 text-xs uppercase tracking-wider text-zinc-400">
-                  University Athletes
+                  Participating Divisions
                 </p>
               </div>
               <div className="rounded-xl border border-white/15 bg-[#141414] p-4">
-                <p className="font-plak text-3xl font-extrabold text-[#E7B736]">100%</p>
+                <p className="font-plak text-3xl font-extrabold text-[#E7B736]">IS1205</p>
                 <p className="mt-1 text-xs uppercase tracking-wider text-zinc-400">
-                  Real-Time Scoring
+                  Sports Studies Module
                 </p>
               </div>
             </div>
@@ -1192,30 +1248,61 @@ export default function EmprezaPage() {
             </p>
           </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {gallery.map((item, idx) => (
+          <div className="mt-10">
+            <div className="mb-5 flex items-center gap-3">
+             
+            </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {visibleGalleryItems.map((item, idx) => {
+                const galleryIndex = (galleryPage - 1) * galleryPageSize + idx;
+                return (
+                <button
+                  type="button"
+                  key={`${item.image}-${galleryIndex}`}
+                  onClick={() => setSelectedGalleryIndex(galleryIndex)}
+                  className="group relative h-64 overflow-hidden rounded-2xl border border-white/10 bg-[#161616]"
+                >
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <span className="inline-block rounded bg-[#E7B736] px-2 py-0.5 text-[10px] font-extrabold uppercase text-black">
+                      {item.category}
+                    </span>
+                    {item.title && (
+                      <h3 className="font-plak mt-1 text-xl font-bold uppercase text-white">
+                        {item.title}
+                      </h3>
+                    )}
+                  </div>
+                </button>
+                );
+              })}
+            </div>
+            <div className="mt-8 flex items-center justify-center gap-2">
               <button
                 type="button"
-                key={idx}
-                onClick={() => setSelectedGalleryIndex(idx)}
-                className="group relative h-64 overflow-hidden rounded-2xl border border-white/10 bg-[#161616]"
+                onClick={() => setGalleryPage((page) => Math.max(1, page - 1))}
+                disabled={galleryPage === 1}
+                className="rounded-lg border border-white/15 px-4 py-2 text-sm text-white transition hover:border-[#E7B736] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4">
-                  <span className="inline-block rounded bg-[#E7B736] px-2 py-0.5 text-[10px] font-extrabold uppercase text-black">
-                    {item.category}
-                  </span>
-                  <h3 className="font-plak mt-1 text-xl font-bold uppercase text-white">
-                    {item.title}
-                  </h3>
-                </div>
+                Previous
               </button>
-            ))}
+              <span className="px-3 text-sm text-zinc-400">
+                Page {galleryPage} of {galleryPageCount}
+              </span>
+              <button
+                type="button"
+                onClick={() => setGalleryPage((page) => Math.min(galleryPageCount, page + 1))}
+                disabled={galleryPage === galleryPageCount}
+                className="rounded-lg border border-white/15 px-4 py-2 text-sm text-white transition hover:border-[#E7B736] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -1255,9 +1342,11 @@ export default function EmprezaPage() {
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#E7B736]">
                   {gallery[selectedGalleryIndex].category}
                 </p>
-                <h3 className="font-plak mt-1 text-xl font-bold uppercase text-white">
-                  {gallery[selectedGalleryIndex].title}
-                </h3>
+                {gallery[selectedGalleryIndex].title && (
+                  <h3 className="font-plak mt-1 text-xl font-bold uppercase text-white">
+                    {gallery[selectedGalleryIndex].title}
+                  </h3>
+                )}
                 <p className="mt-1 text-xs text-zinc-400">
                   {selectedGalleryIndex + 1} / {gallery.length} • Use arrow keys to browse
                 </p>
