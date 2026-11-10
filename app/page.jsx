@@ -547,6 +547,11 @@ export default function EmprezaPage() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedGalleryIndex, setSelectedGalleryIndex] = useState(null);
   const [galleryPage, setGalleryPage] = useState(1);
+  const [approvedSelfies, setApprovedSelfies] = useState([]);
+  const [selfiesLoading, setSelfiesLoading] = useState(true);
+  const [selfiesError, setSelfiesError] = useState("");
+  const [selectedSelfieIndex, setSelectedSelfieIndex] = useState(null);
+  const [selfiesRefresh, setSelfiesRefresh] = useState(0);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [adminPin, setAdminPin] = useState("");
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -561,6 +566,60 @@ export default function EmprezaPage() {
     (galleryPage - 1) * galleryPageSize,
     galleryPage * galleryPageSize
   );
+
+  useEffect(() => {
+    let active = true;
+
+    const loadApprovedSelfies = async () => {
+      if (!supabase) {
+        if (active) {
+          setSelfiesLoading(false);
+          setSelfiesError("Live photos are not configured.");
+        }
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("selfies")
+        .select("id, image_data, event, team_name, created_at")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false });
+
+      if (!active) return;
+      if (error) {
+        setSelfiesError("Live photos could not be loaded right now.");
+        setSelfiesLoading(false);
+        console.error("Approved selfies read error:", error);
+        return;
+      }
+
+      setApprovedSelfies(data || []);
+      setSelfiesError("");
+      setSelfiesLoading(false);
+    };
+
+    loadApprovedSelfies();
+    const refreshTimer = window.setInterval(loadApprovedSelfies, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(refreshTimer);
+    };
+  }, [selfiesRefresh]);
+
+  useEffect(() => {
+    if (selectedSelfieIndex === null) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setSelectedSelfieIndex(null);
+      if (event.key === "ArrowLeft") {
+        setSelectedSelfieIndex((index) => (index - 1 + approvedSelfies.length) % approvedSelfies.length);
+      }
+      if (event.key === "ArrowRight") {
+        setSelectedSelfieIndex((index) => (index + 1) % approvedSelfies.length);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedSelfieIndex, approvedSelfies.length]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsIntroVisible(false), 2200);
@@ -737,6 +796,9 @@ export default function EmprezaPage() {
             </a>
             <a href="#gallery" className="transition hover:text-[#E7B736]">
               Gallery
+            </a>
+            <a href="#live-images" className="transition hover:text-[#E7B736]">
+              Live Photos
             </a>
           </nav>
 
@@ -1309,6 +1371,137 @@ export default function EmprezaPage() {
           </div>
         </div>
       </section>
+
+      <section id="live-images" className="border-t border-white/10 bg-[#0C0C0C] py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-[#FF6B00]">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-[#FF6B00]" />
+                LIVE COMMUNITY MOMENTS
+              </span>
+              <h2 className="font-plak mt-1 text-3xl font-extrabold uppercase text-white sm:text-5xl">
+                APPROVED <span className="text-[#E7B736]">SELFIES</span>
+              </h2>
+            </div>
+            <p className="text-xs text-zinc-400">
+              Approved event photos appear here automatically.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSelfiesLoading(true);
+                setSelfiesRefresh((value) => value + 1);
+              }}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#E7B736]/50 bg-[#E7B736]/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#E7B736] transition hover:bg-[#E7B736] hover:text-black"
+            >
+              <RefreshCw className={`h-4 w-4 ${selfiesLoading ? "animate-spin" : ""}`} />
+              Refresh live photos
+            </button>
+          </div>
+
+          {selfiesLoading && (
+            <p className="mt-8 text-sm text-zinc-400">Loading live photos...</p>
+          )}
+          {!selfiesLoading && selfiesError && (
+            <p className="mt-8 rounded-xl border border-white/10 bg-[#161616] p-5 text-sm text-zinc-400">
+              {selfiesError}
+            </p>
+          )}
+          {!selfiesLoading && !selfiesError && approvedSelfies.length === 0 && (
+            <p className="mt-8 rounded-xl border border-white/10 bg-[#161616] p-5 text-sm text-zinc-400">
+              No approved photos yet. New approved event moments will appear here.
+            </p>
+          )}
+          {!selfiesLoading && !selfiesError && approvedSelfies.length > 0 && (
+            <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {approvedSelfies.map((photo, index) => (
+                <button
+                  type="button"
+                  key={photo.id}
+                  onClick={() => setSelectedSelfieIndex(index)}
+                  className="group relative overflow-hidden rounded-2xl border border-[#E7B736]/40 bg-[#161616] text-left transition duration-300 hover:-translate-y-1 hover:border-[#E7B736] hover:shadow-[0_1.5rem_3rem_-1.5rem_rgba(231,183,54,0.7)]"
+                >
+                  <img
+                    src={photo.image_data}
+                    alt={`${photo.team_name || "Team"} event moment`}
+                    className="h-60 w-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+                  <span className="absolute right-3 top-3 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#E7B736] opacity-0 transition group-hover:opacity-100">
+                    View photo
+                  </span>
+                  <div className="p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00]">
+                      {photo.event || "EMPREZA 2026"}
+                    </p>
+                    <p className="mt-1 text-lg font-bold text-white">
+                      {photo.team_name || "EMPREZA Team"}
+                    </p>
+                    <p className="mt-2 text-[10px] uppercase tracking-wider text-zinc-500">
+                      Approved live moment
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {selectedSelfieIndex !== null && approvedSelfies[selectedSelfieIndex] && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
+          onClick={() => setSelectedSelfieIndex(null)}
+        >
+          <div
+            className="relative w-full max-w-5xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedSelfieIndex(null)}
+              className="absolute right-2 top-2 z-10 rounded-full bg-black/70 p-2 text-white transition hover:bg-[#E7B736] hover:text-black"
+              aria-label="Close live photo"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <img
+              src={approvedSelfies[selectedSelfieIndex].image_data}
+              alt={`${approvedSelfies[selectedSelfieIndex].team_name || "Team"} event moment`}
+              className="max-h-[78vh] w-full rounded-2xl object-contain"
+            />
+            <div className="mt-4 flex items-center justify-between gap-4">
+              <button
+                type="button"
+                onClick={() => setSelectedSelfieIndex((index) => (index - 1 + approvedSelfies.length) % approvedSelfies.length)}
+                className="rounded-full border border-white/20 bg-white/10 p-3 text-white hover:border-[#E7B736] hover:text-[#E7B736]"
+                aria-label="Previous live photo"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <div className="text-center">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#FF6B00]">
+                  {approvedSelfies[selectedSelfieIndex].event || "EMPREZA 2026"}
+                </p>
+                <h3 className="font-plak mt-1 text-xl font-bold uppercase text-white">
+                  {approvedSelfies[selectedSelfieIndex].team_name || "EMPREZA Team"}
+                </h3>
+                <p className="mt-1 text-xs text-zinc-400">
+                  {selectedSelfieIndex + 1} / {approvedSelfies.length} • Use arrow keys to browse
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedSelfieIndex((index) => (index + 1) % approvedSelfies.length)}
+                className="rounded-full border border-white/20 bg-white/10 p-3 text-white hover:border-[#E7B736] hover:text-[#E7B736]"
+                aria-label="Next live photo"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedGalleryIndex !== null && (
         <div
