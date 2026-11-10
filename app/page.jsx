@@ -550,6 +550,7 @@ export default function EmprezaPage() {
   const [selectedGalleryIndex, setSelectedGalleryIndex] = useState(null);
   const [galleryPage, setGalleryPage] = useState(1);
   const [approvedSelfies, setApprovedSelfies] = useState([]);
+  const [selfiesPage, setSelfiesPage] = useState(1);
   const [selfiesLoading, setSelfiesLoading] = useState(true);
   const [selfiesError, setSelfiesError] = useState("");
   const [selectedSelfieIndex, setSelectedSelfieIndex] = useState(null);
@@ -568,6 +569,12 @@ export default function EmprezaPage() {
     (galleryPage - 1) * galleryPageSize,
     galleryPage * galleryPageSize
   );
+  const selfiesPageSize = 6;
+  const selfiesPageCount = Math.max(1, Math.ceil(approvedSelfies.length / selfiesPageSize));
+  const visibleApprovedSelfies = approvedSelfies.slice(
+    (selfiesPage - 1) * selfiesPageSize,
+    selfiesPage * selfiesPageSize
+  );
 
   useEffect(() => {
     let active = true;
@@ -585,7 +592,8 @@ export default function EmprezaPage() {
         .from("selfies")
         .select("id, image_data, event, team_name, created_at")
         .eq("status", "approved")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false });
 
       if (!active) return;
       if (error) {
@@ -655,6 +663,10 @@ export default function EmprezaPage() {
   useEffect(() => {
     if (galleryPage > galleryPageCount) setGalleryPage(galleryPageCount);
   }, [galleryPage, galleryPageCount]);
+
+  useEffect(() => {
+    if (selfiesPage > selfiesPageCount) setSelfiesPage(selfiesPageCount);
+  }, [selfiesPage, selfiesPageCount]);
 
   useEffect(() => {
     if (window.location.hash === "#/admin") {
@@ -1418,35 +1430,61 @@ export default function EmprezaPage() {
             </p>
           )}
           {!selfiesLoading && !selfiesError && approvedSelfies.length > 0 && (
-            <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {approvedSelfies.map((photo, index) => (
+            <div className="mt-8">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {visibleApprovedSelfies.map((photo, index) => {
+                  const selfieIndex = (selfiesPage - 1) * selfiesPageSize + index;
+                  return (
+                    <button
+                      type="button"
+                      key={photo.id}
+                      onClick={() => setSelectedSelfieIndex(selfieIndex)}
+                      className="group relative overflow-hidden rounded-2xl border border-[#E7B736]/40 bg-[#161616] text-left transition duration-300 hover:-translate-y-1 hover:border-[#E7B736] hover:shadow-[0_1.5rem_3rem_-1.5rem_rgba(231,183,54,0.7)]"
+                    >
+                      <img
+                        src={photo.image_data}
+                        alt={`${photo.team_name || "Team"} event moment`}
+                        className="h-60 w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                      <span className="absolute right-3 top-3 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#E7B736] opacity-0 transition group-hover:opacity-100">
+                        View photo
+                      </span>
+                      <div className="p-4">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00]">
+                          {photo.event || "EMPREZA 2026"}
+                        </p>
+                        <p className="mt-1 text-lg font-bold text-white">
+                          {photo.team_name || "EMPREZA Team"}
+                        </p>
+                        <p className="mt-2 text-[10px] uppercase tracking-wider text-zinc-500">
+                          Approved live moment
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-8 flex items-center justify-center gap-2">
                 <button
                   type="button"
-                  key={photo.id}
-                  onClick={() => setSelectedSelfieIndex(index)}
-                  className="group relative overflow-hidden rounded-2xl border border-[#E7B736]/40 bg-[#161616] text-left transition duration-300 hover:-translate-y-1 hover:border-[#E7B736] hover:shadow-[0_1.5rem_3rem_-1.5rem_rgba(231,183,54,0.7)]"
+                  onClick={() => setSelfiesPage((page) => Math.max(1, page - 1))}
+                  disabled={selfiesPage === 1}
+                  className="rounded-lg border border-white/15 px-4 py-2 text-sm text-white transition hover:border-[#E7B736] disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  <img
-                    src={photo.image_data}
-                    alt={`${photo.team_name || "Team"} event moment`}
-                    className="h-60 w-full object-cover transition duration-500 group-hover:scale-105"
-                  />
-                  <span className="absolute right-3 top-3 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#E7B736] opacity-0 transition group-hover:opacity-100">
-                    View photo
-                  </span>
-                  <div className="p-4">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00]">
-                      {photo.event || "EMPREZA 2026"}
-                    </p>
-                    <p className="mt-1 text-lg font-bold text-white">
-                      {photo.team_name || "EMPREZA Team"}
-                    </p>
-                    <p className="mt-2 text-[10px] uppercase tracking-wider text-zinc-500">
-                      Approved live moment
-                    </p>
-                  </div>
+                  Previous
                 </button>
-              ))}
+                <span className="px-3 text-sm text-zinc-400">
+                  Page {selfiesPage} of {selfiesPageCount}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSelfiesPage((page) => Math.min(selfiesPageCount, page + 1))}
+                  disabled={selfiesPage === selfiesPageCount}
+                  className="rounded-lg border border-white/15 px-4 py-2 text-sm text-white transition hover:border-[#E7B736] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </div>
